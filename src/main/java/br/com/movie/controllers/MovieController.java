@@ -1,10 +1,12 @@
 package br.com.movie.controllers;
 
+import java.net.URI;
 import java.util.List;
 
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import br.com.movie.handlers.ResourceNotFoundException;
 import br.com.movie.model.Register;
@@ -27,8 +30,8 @@ public class MovieController {
 	private MovieRepository movieRepository;
 
 	@GetMapping("/all")
-	public List<Register> getAllRegister() {
-		return movieRepository.findAll();
+	public ResponseEntity<List<Register>> getAllRegister() {
+		return ResponseEntity.status(HttpStatus.OK).body(movieRepository.findAll());
 	}
 
 	@GetMapping("/{id}")
@@ -42,8 +45,13 @@ public class MovieController {
 	}
 
 	@PostMapping
-	public Register createRegister(@Valid @RequestBody Register register) {
-		return movieRepository.save(register);
+	public ResponseEntity<Register> createRegister(@Valid @RequestBody Register register) {
+		register = movieRepository.save(register);
+
+		URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("{id}").buildAndExpand(register.getId())
+				.toUri();
+
+		return ResponseEntity.created(uri).build();
 	}
 
 	@PutMapping("/{id}")
